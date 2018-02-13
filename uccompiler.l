@@ -1,4 +1,4 @@
-%X COMMENT CHARREAD LINECOMMENT
+%X COMMENT LINECOMMENT
 %{
 	//#include "y.tab.h"
     int line=1;
@@ -29,17 +29,9 @@ OCT [0-7][0-7]?[0-7]?
 <COMMENT><<EOF>>		{printf("Line %d, col %d: unterminated comment\n", e_line, e_col);col+=yyleng;BEGIN 0;}
 <COMMENT>.				{col+=yyleng;/* Ignorar comentários */}
 
-'									{e_line=line;e_col=col;col+=yyleng;BEGIN CHARREAD;}
-<CHARREAD>\\(\\|n|t|\'|\"|{OCT})	{col+=yyleng;}
-<CHARREAD>\\|\\(.)					{printf("Line %d, col %d: invalid char constant (%s)\n", line, col, yytext);col+=yyleng;}
-<CHARREAD>"\n"						{printf("Line %d, col %d: unterminated char constant\n", e_line, e_col);col=1;line++;BEGIN 0;}
-<CHARREAD>"\r"						{printf("Line %d, col %d: unterminated char constant\n", e_line, e_col);col=1;line++;BEGIN 0;}
-<CHARREAD>"\r\n"					{printf("Line %d, col %d: unterminated char constant\n", e_line, e_col);col=1;line++;BEGIN 0;}
-<CHARREAD><<EOF>>					{printf("Line %d, col %d: unterminated char constant\n", e_line, e_col);col=1;line++;BEGIN 0;}
-<CHARREAD>'							{col+=yyleng;BEGIN 0;}
-<CHARREAD>.							{col+=yyleng;}
-'([^\n\r\\"']|\\n|\\t|\\\\|\\\'|\\\"\|\\{OCT})?'		{col+=yyleng; if (printToken) {printf("CHRLIT(%s)\n", yytext);}}
-'([^\n\r\\"]|\\n|\\t|\\\\|\\\'|\\\"\|\\{OCT}|')+'		{printf("Line %d, col %d: invalid char constant (%s)\n", line, col, yytext);col+=yyleng;}
+'([^\n\r']|\\n|\\t|\\\\|\\\'|\\\"|\\{OCT})?'	{col+=yyleng; if (printToken) {printf("CHRLIT(%s)\n", yytext);}}
+'("\n"|"\r"|"\r\n"|<EOF>)						{printf("Line %d, col %d: unterminated char constant\n", line, col);col=1;line++;}
+'([^\n\r']|\\n|\\t|\\\\|\\\'|\\\"|\\{OCT})+'	{printf("Line %d, col %d: invalid char constant (%s)\n", line, col, yytext);col+=yyleng;}
 
 {NUMPART}"."({NUMPART})?([Ee]("+"|"-")?{NUMPART})?		{col+=yyleng; if (printToken) {printf("REALLIT(%s)\n", yytext);}}
 "."({NUMPART})([Ee]("+"|"-")?{NUMPART})?				{col+=yyleng; if (printToken) {printf("REALLIT(%s)\n", yytext);}}
