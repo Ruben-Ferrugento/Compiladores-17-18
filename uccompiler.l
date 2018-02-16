@@ -1,4 +1,4 @@
-%X COMMENT LINECOMMENT
+%X COMMENT LINECOMMENT CHRREAD
 %{
 	//#include "y.tab.h"
     int line=1;
@@ -6,12 +6,19 @@
 	int e_line=0;
 	int e_col=0;
 	int printToken = 0;
-	int str_length = 0;
 	int i;
 %}
 
-NUMPART [0-9]+
-OCT [0-7][0-7]?[0-7]?
+NUMPART		[0-9]+
+OCT			[0-7][0-7]?[0-7]?
+CHAR		[^\n\r'\\]
+ESCAPE		\\(n|t|\\|\'|\"|{OCT})
+INVESC		\\(.)
+CHRLIT		'({CHAR}|{ESCAPE})'
+INVCHR		({CHAR}|{INVESC})
+ENDLINE		"\n"|"\r"|"\r\n"|<EOF>
+EXP			[Ee][+-]?{NUMPART}
+REALLIT		({NUMPART}"."({NUMPART})?({EXP})?)|("."({NUMPART})({EXP})?)|({NUMPART}({EXP}))
 
 %%
 
@@ -29,13 +36,15 @@ OCT [0-7][0-7]?[0-7]?
 <COMMENT><<EOF>>		{printf("Line %d, col %d: unterminated comment\n", e_line, e_col);col+=yyleng;BEGIN 0;}
 <COMMENT>.				{col+=yyleng;/* Ignorar comentários */}
 
-'([^\n\r']|\\n|\\t|\\\\|\\\'|\\\"|\\{OCT})?'	{col+=yyleng; if (printToken) {printf("CHRLIT(%s)\n", yytext);}}
-'("\n"|"\r"|"\r\n"|<EOF>)						{printf("Line %d, col %d: unterminated char constant\n", line, col);col=1;line++;}
-'([^\n\r']|\\n|\\t|\\\\|\\\'|\\\"|\\{OCT})+'	{printf("Line %d, col %d: invalid char constant (%s)\n", line, col, yytext);col+=yyleng;}
 
-{NUMPART}"."({NUMPART})?([Ee]("+"|"-")?{NUMPART})?		{col+=yyleng; if (printToken) {printf("REALLIT(%s)\n", yytext);}}
-"."({NUMPART})([Ee]("+"|"-")?{NUMPART})?				{col+=yyleng; if (printToken) {printf("REALLIT(%s)\n", yytext);}}
-{NUMPART}([Ee]("+"|"-")?{NUMPART})						{col+=yyleng; if (printToken) {printf("REALLIT(%s)\n", yytext);}}
+'								{e_line=line;e_col=col;col+=yyleng;BEGIN CHRREAD;}
+<CHRREAD>{ENDLINE}				{printf("Line %d, col %d: unterminated char constant\n", e_line, e_col);col=1;line++;BEGIN 0;}
+<CHRREAD>.						{col+=yyleng;}
+''								{printf("Line %d, col %d: invalid char constant (%s)\n", line, col, yytext);col+=yyleng;}
+{CHRLIT}						{col+=yyleng; if (printToken) {printf("CHRLIT(%s)\n", yytext);}}
+'{INVCHR}{INVCHR}*'				{printf("Line %d, col %d: invalid char constant (%s)\n", line, col, yytext);col+=yyleng;BEGIN 0;}
+
+{REALLIT}				{col+=yyleng; if (printToken) {printf("REALLIT(%s)\n", yytext);}}
 
 [0-9]+					{col+=yyleng; if (printToken) {printf("INTLIT(%s)\n", yytext);}}
 
