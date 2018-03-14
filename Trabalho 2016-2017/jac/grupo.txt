@@ -1,0 +1,7 @@
+Grupo: ABRF
+Nome1: Ana Beatriz Figueira Bernardo
+Numero1: 2011152557
+Email1: anab@student.dei.uc.pt
+Nome2: Ruben Filipe Raposo Ferrugento
+Numero2: 2012138470
+Email2: rfrf@student.dei.uc.pt
