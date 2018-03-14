@@ -16,11 +16,18 @@
 %}
 
 %union{
+<<<<<<< HEAD
 		
     char* string;   
 	char* chr;
 	int num;
 	double d;  
+=======
+        char* string;   
+	char chr;
+	int num;
+	double d;
+>>>>>>> 68efac52edd0d14d75fc51b46893efe261ebf53b
 }
 
 %token LPAR RPAR LBRACE RBRACE
