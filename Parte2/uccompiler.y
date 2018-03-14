@@ -45,87 +45,100 @@
 
 %%
 
-FunctionsAndDeclarations: FunctionDefinition FunctionsAndDeclarations2	{}
-		| FunctionDeclaration FunctionsAndDeclarations2	{}
-		| Declaration FunctionsAndDeclarations2	{}   
+FunctionsAndDeclarations: FunctionDefinition FunctionsAndDeclarations2	
+		| FunctionDeclaration FunctionsAndDeclarations2	
+		| Declaration FunctionsAndDeclarations2	
+		| FunctionDefinition 
+		| FunctionDeclaration 
+		| Declaration 
         ;
 
-FunctionsAndDeclarations2: FunctionDefinition	{}
-		| FunctionDeclaration	{}
-		| Declaration	{}
+FunctionsAndDeclarations2: FunctionDefinition FunctionsAndDeclarations2 
+		| FunctionDeclaration FunctionsAndDeclarations2 
+		| Declaration FunctionsAndDeclarations2	
 		;
 
-FunctionDefinition: TypeSpec FunctionDeclarator FunctionBody	{}
+FunctionDefinition: TypeSpec FunctionDeclarator FunctionBody	
 		;
 
-FunctionBody: LBRACE DeclarationsAndStatements RBRACE	{}
+FunctionBody: LBRACE RBRACE	
+		| LBRACE DeclarationsAndStatements RBRACE
 		;
 
-DeclarationsAndStatements: Statement DeclarationsAndStatements {}
-		| Declaration DeclarationsAndStatements {}
-		| Statement	{}
-		| Declaration	{}
+DeclarationsAndStatements: Statement DeclarationsAndStatements 
+		| Declaration DeclarationsAndStatements 
+		| Statement	
+		| Declaration	
 		;
 
-FunctionDeclaration: TypeSpec FunctionDeclarator SEMI	{}
+FunctionDeclaration: TypeSpec FunctionDeclarator SEMI	
 		;
 		
-FunctionDeclarator: ID LPAR ParameterList RPAR	{}
+FunctionDeclarator: ID LPAR ParameterList RPAR	
 		;
 
-ParameterList: ParameterDeclaration COMMA ParameterDeclaration ParameterDeclaration	{}
+ParameterList: ParameterDeclaration COMMA ParameterDeclaration ParameterDeclaration	
 		;
 
-ParameterDeclaration: TypeSpec ID	{}
+ParameterDeclaration: TypeSpec ID	
+		| TypeSpec 
 		;
 
-Declaration: TypeSpec Declarator COMMA Declarator SEMI	{}
+Declaration: TypeSpec Declarator COMMA Declarator SEMI	
 		;
 
-TypeSpec: CHAR	{}
-		| INT	{}
-		| VOID	{}
-		| SHORT	{}
-		| DOUBLE {}
+TypeSpec: CHAR	
+		| INT	
+		| VOID	
+		| SHORT	
+		| DOUBLE
 		;
 
-Declarator: ID ASSIGN Expr	{}
+Declarator: ID ASSIGN Expr
+		| ID 
 		;
 
-Statement: Expr SEMI	{}
-		| LBRACE Statement RBRACE {}
-		| IF LPAR Expr RPAR Statement {}
-		| WHILE LPAR Expr RPAR Statement {}
-		| RETURN Expr SEMI {}
+Statement: Expr SEMI
+		| SEMI 
+		| LBRACE Statement RBRACE 
+		| IF LPAR Expr RPAR Statement 
+		| IF LPAR Expr RPAR Statement ELSE Statement 
+		| WHILE LPAR Expr RPAR Statement 
+		| RETURN Expr SEMI 
+		| RETURN SEMI 
 		;
 
-Expr: Expr ASSIGN Expr	{}
-	| Expr COMMA Expr	{}
-	| Expr PLUS Expr	{}
-	| Expr MINUS Expr	{}
-	| Expr MUL Expr		{}
-	| Expr DIV Expr		{}
-	| Expr MOD Expr 	{}
-	| Expr OR Expr		{}
-	| Expr AND Expr		{}
-	| Expr BITWISEAND Expr		{}
-	| Expr BITWISEOR Expr		{}
-	| Expr BITWISEXOR Expr		{}
-	| Expr EQ Expr		{}
-	| Expr NE Expr		{}
-	| Expr LE Expr		{}
-	| Expr GE Expr		{}
-	| Expr LT Expr		{}
-	| Expr GT Expr		{}
-	| PLUS Expr		{}
-	| MINUS Expr		{}
-	| NOT Expr		{}
-	| ID LPAR Expr COMMA Expr RPAR {}
-	| ID {}
-	| INTLIT {}
-	| CHRLIT {}
-	| REALLIT {}
-	| LPAR Expr RPAR {}
+ECommaE: Expr COMMA Expr 
+	;
+
+Expr: Expr ASSIGN Expr	
+	| ECommaE	
+	| Expr PLUS Expr	
+	| Expr MINUS Expr	
+	| Expr MUL Expr		
+	| Expr DIV Expr		
+	| Expr MOD Expr 	
+	| Expr OR Expr		
+	| Expr AND Expr		
+	| Expr BITWISEAND Expr	
+	| Expr BITWISEOR Expr	
+	| Expr BITWISEXOR Expr	
+	| Expr EQ Expr		
+	| Expr NE Expr		
+	| Expr LE Expr		
+	| Expr GE Expr		
+	| Expr LT Expr		
+	| Expr GT Expr		
+	| PLUS Expr		
+	| MINUS Expr	
+	| NOT Expr		
+	| ID LPAR RPAR 
+	| ID LPAR ECommaE RPAR 
+	| ID 
+	| INTLIT 
+	| CHRLIT 
+	| REALLIT 
+	| LPAR Expr RPAR 
 	;
 
 //--------------------------//
