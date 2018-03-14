@@ -17,6 +17,9 @@
 
 %union{
         char* string;   
+	char chr;
+	int num;
+	double d;
 }
 
 %token LPAR RPAR LBRACE RBRACE
