@@ -1,6 +1,7 @@
 %X COMMENT LINECOMMENT CHRREAD
 %{
 	#include "y.tab.h"
+	void saveYPos();
     int line=1;
 	int col=1;
 	int e_line=0;
