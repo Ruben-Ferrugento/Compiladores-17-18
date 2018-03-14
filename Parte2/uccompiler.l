@@ -1,13 +1,14 @@
 %X COMMENT LINECOMMENT CHRREAD
 %{
 	#include "y.tab.h"
+	void saveYPos();
     int line=1;
 	int col=1;
 	int e_line=0;
 	int e_col=0;
 	int printToken = 0;
 	int printTree = 0;
-	extern int yLine, yCol;
+	int yLine, yCol;
 	int i;
 %}
 
@@ -43,10 +44,10 @@ REALLIT		({NUMPART}"."({NUMPART})?({EXP})?)|("."({NUMPART})({EXP})?)|({NUMPART}(
 <CHRREAD>{ENDLINE}		{saveYPos();printf("Line %d, col %d: unterminated char constant\n", e_line, e_col);col=1;line++;BEGIN 0;}
 <CHRREAD>.				{saveYPos();col+=yyleng;}
 ''						{saveYPos();printf("Line %d, col %d: invalid char constant (%s)\n", line, col, yytext);col+=yyleng;}
-{CHRLIT}				{saveYPos();col+=yyleng; if (printToken) {printf("CHRLIT(%s)\n", yytext);}; yylval.string = strdup(yytext); return CHRLIT;}
+{CHRLIT}				{saveYPos();col+=yyleng; if (printToken) {printf("CHRLIT(%s)\n", yytext);}; yylval.chr = strdup(yytext); return CHRLIT;}
 '{INVCHR}{INVCHR}*'		{saveYPos();printf("Line %d, col %d: invalid char constant (%s)\n", line, col, yytext);col+=yyleng;BEGIN 0;}
 
-{REALLIT}				{saveYPos();col+=yyleng; if (printToken) {printf("REALLIT(%s)\n", yytext);}; yylval.num = atoi(yytext); return REALLIT;}
+{REALLIT}				{saveYPos();col+=yyleng; if (printToken) {printf("REALLIT(%s)\n", yytext);}; yylval.d = atoi(yytext); return REALLIT;}
 
 [0-9]+					{saveYPos();col+=yyleng; if (printToken) {printf("INTLIT(%s)\n", yytext);}; yylval.num = atoi(yytext); return INTLIT;}
 
@@ -121,13 +122,7 @@ void saveYPos()
 	yCol = col;
 }
 
-void yyerror(const char *s)
-{
-	printf("Line %d, col %d: %s: %s\n", yLine, yCol, s, yytext);
-}
-
 int yywrap()
 {
 return 1;
 }
-

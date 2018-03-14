@@ -8,19 +8,23 @@
     int yylex(void);
 
     /*importa as variaveis do lex*/
-    extern int lineNum;
-    extern int columnNum;
+    extern int yLine;
+    extern int yCol;
     extern char *yytext; 
     extern int yyleng;
     
 %}
 
 %union{
-        char* string;   
+		
+    char* string;   
+	char* chr;
+	int num;
+	double d;  
 }
 
 %token LPAR RPAR LBRACE RBRACE
-%token OR AND EQ NE LT GT LE GE ADD SUB MUL DIV MOD NOT MINUS PLUS STORE COMMA BITWISEAND BITWISEXOR BITWISEOR ASSIGN
+%token OR AND EQ NE LT GT LE GE ADD SUB MUL DIV MOD NOT MINUS PLUS STORE COMMA BITWISEAND BITWISEXOR BITWISEOR ASSIGN SEMI
 %token CHAR ELSE WHILE IF INT SHORT DOUBLE RETURN VOID
 
 %token <string> RESERVED
@@ -45,19 +49,17 @@
 
 %%
 
-FunctionsAndDeclarations: FunctionDefinition FunctionsAndDeclarations2	
-		| FunctionDeclaration FunctionsAndDeclarations2	
-		| Declaration FunctionsAndDeclarations2	
-		| FunctionDefinition 
-		| FunctionDeclaration 
-		| Declaration 
-        ;
-
-FunctionsAndDeclarations2: FunctionDefinition FunctionsAndDeclarations2 
-		| FunctionDeclaration FunctionsAndDeclarations2 
-		| Declaration FunctionsAndDeclarations2	
+//FunctionsAndDeclarations: FunctionDefinition FunctionsAndDeclarations
+//		| FunctionDeclaration FunctionsAndDeclarations
+//		| Declaration FunctionsAndDeclarations
+//		| FunctionDefinition 
+//		| FunctionDeclaration 
+//		| Declaration 
+//        ;
+FunctionsAndDeclarations: Expr
 		;
 
+/*
 FunctionDefinition: TypeSpec FunctionDeclarator FunctionBody	
 		;
 
@@ -107,38 +109,54 @@ Statement: Expr SEMI
 		| RETURN Expr SEMI 
 		| RETURN SEMI 
 		;
-
-ECommaE: Expr COMMA Expr 
+*/
+CommaE: Expr COMMA Expr 
 	;
 
-Expr: Expr ASSIGN Expr	
-	| ECommaE	
-	| Expr PLUS Expr	
-	| Expr MINUS Expr	
-	| Expr MUL Expr		
-	| Expr DIV Expr		
-	| Expr MOD Expr 	
-	| Expr OR Expr		
-	| Expr AND Expr		
-	| Expr BITWISEAND Expr	
-	| Expr BITWISEOR Expr	
-	| Expr BITWISEXOR Expr	
-	| Expr EQ Expr		
-	| Expr NE Expr		
-	| Expr LE Expr		
-	| Expr GE Expr		
-	| Expr LT Expr		
-	| Expr GT Expr		
-	| PLUS Expr		
-	| MINUS Expr	
-	| NOT Expr		
-	| ID LPAR RPAR 
-	| ID LPAR ECommaE RPAR 
-	| ID 
+Terminal: ASSIGN
+	| MUL
+	| DIV
+	| MOD
+	| OR
+	| AND
+	| BITWISEAND
+	| BITWISEOR
+	| BITWISEXOR
+	| EQ
+	| NE
+	| LE
+	| GE
+	| LT
+	| GT
+	;
+
+Expr1: Terminal Expr
+	| Expr2
+	| CommaE
+	;
+
+Expr2: PLUS Expr %prec NOT
+	| MINUS Expr %prec NOT 
+	;
+
+Expr3: LPAR RPAR 
+	| LPAR Expr CommaE RPAR
+	;
+
+Expr4: Expr RPAR
+	;
+
+Expr: Expr Expr1	
+	| PLUS Expr %prec NOT
+	| MINUS Expr %prec NOT
+	| NOT Expr
+	| ID
+	| ID Expr3	 
 	| INTLIT 
 	| CHRLIT 
 	| REALLIT 
-	| LPAR Expr RPAR 
+	| LPAR Expr4
+	| LPAR Expr3
 	;
 
 //--------------------------//
@@ -146,6 +164,6 @@ Expr: Expr ASSIGN Expr
 %%
 
 void yyerror (const char *s) {      
-        printf ("Line %d, col %d: %s: %s\n", lineNum, columnNum-(int)yyleng, s, yytext); 
+        printf ("Line %d, col %d: %s: %s\n", yLine, yCol-(int)yyleng, s, yytext); 
 }
 
