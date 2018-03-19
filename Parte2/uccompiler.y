@@ -16,18 +16,11 @@
 %}
 
 %union{
-<<<<<<< HEAD
 		
     char* string;   
 	char* chr;
 	int num;
 	double d;  
-=======
-        char* string;   
-	char chr;
-	int num;
-	double d;
->>>>>>> 68efac52edd0d14d75fc51b46893efe261ebf53b
 }
 
 %token LPAR RPAR LBRACE RBRACE
@@ -40,14 +33,15 @@
 %token <string> REALLIT
 %token <string> CHRLIT
 
-
 %left COMMA
+%right ASSIGN
 %left OR
 %left AND
-%left EQ NEQ 
-%left LT LEQ GT GEQ 
+%left EQ NE
+%left GE GT LE LT 
 %left PLUS MINUS
 %left MUL DIV MOD
+%left BITWISEAND BITWISEOR BITWISEXOR
 %right NOT 
 %left LPAR RPAR
 
@@ -56,44 +50,47 @@
 
 %%
 
-//FunctionsAndDeclarations: FunctionDefinition FunctionsAndDeclarations
-//		| FunctionDeclaration FunctionsAndDeclarations
-//		| Declaration FunctionsAndDeclarations
-//		| FunctionDefinition 
-//		| FunctionDeclaration 
-//		| Declaration 
-//        ;
-FunctionsAndDeclarations: Expr
+FunctionsAndDeclarations: FunctionsAndDeclarations FunctionDefinition 
+		| FunctionsAndDeclarations FunctionDeclaration
+		| FunctionsAndDeclarations Declaration
+		| FunctionDefinition 
+		| FunctionDeclaration 
+		| Declaration
 		;
 
-/*
-FunctionDefinition: TypeSpec FunctionDeclarator FunctionBody	
+FunctionDefinition: TypeSpec FunctionDeclarator FunctionBody
 		;
 
-FunctionBody: LBRACE RBRACE	
-		| LBRACE DeclarationsAndStatements RBRACE
+FunctionBody: LBRACE DeclarationsAndStatements RBRACE
+		| LBRACE RBRACE
 		;
 
-DeclarationsAndStatements: Statement DeclarationsAndStatements 
-		| Declaration DeclarationsAndStatements 
-		| Statement	
-		| Declaration	
+DeclarationsAndStatements: Statement DeclarationsAndStatements
+		| Declaration DeclarationsAndStatements
+		| Statement
+		| Declaration
 		;
 
-FunctionDeclaration: TypeSpec FunctionDeclarator SEMI	
-		;
-		
-FunctionDeclarator: ID LPAR ParameterList RPAR	
+FunctionDeclaration: TypeSpec FunctionDeclarator SEMI
 		;
 
-ParameterList: ParameterDeclaration COMMA ParameterDeclaration ParameterDeclaration	
+FunctionDeclarator: ID LPAR ParameterList RPAR
 		;
 
-ParameterDeclaration: TypeSpec ID	
-		| TypeSpec 
+ParameterList: ParameterDeclaration 
+		| ParameterList COMMA ParameterDeclaration
 		;
 
-Declaration: TypeSpec Declarator COMMA Declarator SEMI	
+ParameterDeclaration: TypeSpec ID
+		| TypeSpec
+		;
+
+DeclList: Declarator
+		| DeclList COMMA Declarator
+		;
+
+//20 shift reduce problems - Declaration -> error SEMI
+Declaration: TypeSpec DeclList SEMI
 		;
 
 TypeSpec: CHAR	
@@ -107,66 +104,56 @@ Declarator: ID ASSIGN Expr
 		| ID 
 		;
 
-Statement: Expr SEMI
-		| SEMI 
-		| LBRACE Statement RBRACE 
-		| IF LPAR Expr RPAR Statement 
-		| IF LPAR Expr RPAR Statement ELSE Statement 
-		| WHILE LPAR Expr RPAR Statement 
-		| RETURN Expr SEMI 
-		| RETURN SEMI 
+StmList: StmList Statement
+		| error SEMI
 		;
-*/
-CommaE: Expr COMMA Expr 
-	;
 
-Terminal: ASSIGN
-	| MUL
-	| DIV
-	| MOD
-	| OR
-	| AND
-	| BITWISEAND
-	| BITWISEOR
-	| BITWISEXOR
-	| EQ
-	| NE
-	| LE
-	| GE
-	| LT
-	| GT
-	;
+//20 shift reduce problems - Statement -> error SEMI
+Statement: Expr SEMI
+		| SEMI
+		| LBRACE StmList RBRACE
+		| IF LPAR Expr RPAR Statement ELSE Statement
+		| IF LPAR Expr RPAR Statement %prec IFX
+		| WHILE LPAR Expr RPAR Statement
+		| RETURN Expr SEMI
+		| RETURN SEMI
+		| error SEMI
+		;
 
-Expr1: Terminal Expr
-	| Expr2
-	| CommaE
-	;
-
-Expr2: PLUS Expr %prec NOT
-	| MINUS Expr %prec NOT 
-	;
-
-Expr3: LPAR RPAR 
-	| LPAR Expr CommaE RPAR
-	;
-
-Expr4: Expr RPAR
-	;
-
-Expr: Expr Expr1	
-	| PLUS Expr %prec NOT
-	| MINUS Expr %prec NOT
-	| NOT Expr
-	| ID
-	| ID Expr3	 
+Expr: Expr ASSIGN Expr
+	| Expr PLUS Expr	
+	| Expr MINUS Expr	
+	| Expr MUL Expr		
+	| Expr DIV Expr		
+	| Expr MOD Expr 	
+	| Expr OR Expr		
+	| Expr AND Expr		
+	| Expr BITWISEAND Expr	
+	| Expr BITWISEOR Expr	
+	| Expr BITWISEXOR Expr	
+	| Expr EQ Expr		
+	| Expr NE Expr		
+	| Expr LE Expr		
+	| Expr GE Expr		
+	| Expr LT Expr		
+	| Expr GT Expr		
+	| PLUS Expr %prec NOT		
+	| MINUS Expr %prec NOT	
+	| NOT Expr		
+	| ID LPAR RPAR
+	| ID LPAR ExprList RPAR 
+	| ID 
 	| INTLIT 
 	| CHRLIT 
 	| REALLIT 
-	| LPAR Expr4
-	| LPAR Expr3
+	| LPAR Expr RPAR
+	| ID LPAR error RPAR
+	| LPAR error RPAR
 	;
 
-//--------------------------//
+ExprList: Expr
+	| ExprList COMMA Expr
+	;
 
 %%
 
