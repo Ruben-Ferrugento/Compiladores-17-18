@@ -16,12 +16,8 @@
 %}
 
 %union{
-<<<<<<< HEAD
-=======
-
->>>>>>> 92a8b1e733ef1fe414dda851cb8802b2fda79ef7
 		
-    	char* string;   
+    char* string;   
 	char* chr;
 	int num;
 	double d;  
