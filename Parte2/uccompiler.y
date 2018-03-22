@@ -8,8 +8,8 @@
     int yylex(void);
 
     /*importa as variaveis do lex*/
-    extern int yLine;
-    extern int yCol;
+    extern int line;
+    extern int col;
     extern char *yytext; 
     extern int yyleng;
     
@@ -37,11 +37,13 @@
 %right ASSIGN
 %left OR
 %left AND
+%left BITWISEOR
+%left BITWISEXOR
+%left BITWISEAND
 %left EQ NE
 %left GE GT LE LT 
 %left PLUS MINUS
 %left MUL DIV MOD
-%left BITWISEAND BITWISEOR BITWISEXOR
 %right NOT 
 %left LPAR RPAR
 
@@ -61,14 +63,17 @@ FunctionsAndDeclarations: FunctionsAndDeclarations FunctionDefinition
 FunctionDefinition: TypeSpec FunctionDeclarator FunctionBody
 		;
 
+//FunctionBody: LBRACE RBRACE is ambiguous to Statement: LBRACE RBRACE?
+//LBRACE Statement RBRACE -> LBRACE LBRACE RBRACE RBRACE
 FunctionBody: LBRACE DeclarationsAndStatements RBRACE
 		| LBRACE RBRACE
 		;
 
-DeclarationsAndStatements: Statement DeclarationsAndStatements
-		| Declaration DeclarationsAndStatements
-		| Statement
+//Statement DAS ou Statement = StmList{1,...}
+DeclarationsAndStatements: DeclarationsAndStatements Declaration
+		| DeclarationsAndStatements Statement1
 		| Declaration
+		| Statement1
 		;
 
 FunctionDeclaration: TypeSpec FunctionDeclarator SEMI
@@ -85,12 +90,13 @@ ParameterDeclaration: TypeSpec ID
 		| TypeSpec
 		;
 
-DeclList: Declarator
-		| DeclList COMMA Declarator
+DeclaratorList: Declarator
+		| DeclaratorList COMMA Declarator
 		;
 
 //20 shift reduce problems - Declaration -> error SEMI
-Declaration: TypeSpec DeclList SEMI
+Declaration: TypeSpec DeclaratorList SEMI		
+		| error SEMI		
 		;
 
 TypeSpec: CHAR	
@@ -105,19 +111,24 @@ Declarator: ID ASSIGN Expr
 		;
 
 StmList: StmList Statement
-		| error SEMI
+		| Statement		
 		;
 
+Statement: Statement1
+	    | error SEMI
+		; 
+
 //20 shift reduce problems - Statement -> error SEMI
-Statement: Expr SEMI
+Statement1: Expr SEMI
 		| SEMI
 		| LBRACE StmList RBRACE
+		| LBRACE RBRACE
 		| IF LPAR Expr RPAR Statement ELSE Statement
 		| IF LPAR Expr RPAR Statement %prec IFX
 		| WHILE LPAR Expr RPAR Statement
 		| RETURN Expr SEMI
 		| RETURN SEMI
-		| error SEMI
+		| LBRACE error RBRACE
 		;
 
 Expr: Expr ASSIGN Expr
@@ -158,6 +169,6 @@ ExprList: Expr
 %%
 
 void yyerror (const char *s) {      
-        printf ("Line %d, col %d: %s: %s\n", yLine, yCol-(int)yyleng, s, yytext); 
+        printf ("Line %d, col %d: %s: %s\n", line, col-(int)yyleng, s, yytext);
 }
 
